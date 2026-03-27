@@ -1,0 +1,11 @@
+{
+	"name": "LS_AKV_Sales_DataEnginnering_Project",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://KV-SalesProject-Akash.vault.azure.net/"
+		}
+	}
+}

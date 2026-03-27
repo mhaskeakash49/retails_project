@@ -1,0 +1,442 @@
+{
+	"name": "PL_EXT_BLOB_TGT_ADLS_RAW_Full_ADHOC",
+	"properties": {
+		"activities": [
+			{
+				"name": "ACT_GEN_META_ListFiles",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "ACT_LOGGER_START",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_ABLB_BINARY_FILE",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ACT_ITRC_IF_FunctionalPurpose_FileExistance",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "ACT_LOGGER",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(length(activity('ACT_GEN_META_ListFiles').output.childItems),0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "ACT_GEN_EmailNotification",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "ACT_LOGGER_1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"url": "https://prod-24.centralindia.logic.azure.com:443/workflows/e8a63768703b4297a856c793d4f6ef64/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=BaTF6qJy0eJhztlj9hmV8MCyLTB19mIitdCwh1fs5pw",
+								"body": {
+									"value": "{\n  \"To\":\"mhaskeakash491@gmail.com;priyaintellibi@gmail.com\",\n  \"Subject\": \"Raw load status failure alert\",\n  \"Body\":\"Hi Team,\n  There is no files available at Azure Blob Storage(Source) to process ADLS(Raw Layer). Kindly verify and take necessary action...!\"\n}",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "ACT_BLOB_FILE_MISSING",
+							"type": "Fail",
+							"dependsOn": [
+								{
+									"activity": "ACT_GEN_EmailNotification",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "\"Input files not exist at blob storage (Source)\"",
+								"errorCode": "ERR_FILE_NOT_FOUND"
+							}
+						},
+						{
+							"name": "ACT_LOGGER_1",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[audit].[usp_Insert_Log]",
+								"storedProcedureParameters": {
+									"ActivityName": {
+										"value": "\"FILE_CHECK\"",
+										"type": "String"
+									},
+									"ErrorMessage": {
+										"value": "\"NO_FILE_FOUND\"",
+										"type": "String"
+									},
+									"FileName": {
+										"value": "",
+										"type": "String"
+									},
+									"PipelineName": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"RunId": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Status": {
+										"value": "\"FAILED\"",
+										"type": "String"
+									},
+									"StepName": {
+										"value": "\"NO_FILE\"",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_AzureSQL_LogPipelineStart",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "ACT_LOGGER_2",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "ACT_BLOB_FILE_MISSING",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[audit].[usp_Insert_Log]",
+								"storedProcedureParameters": {
+									"ActivityName": {
+										"value": "\"FILE_CHECK\"",
+										"type": "String"
+									},
+									"ErrorMessage": {
+										"value": "\"Error alert sent on mail\"",
+										"type": "String"
+									},
+									"FileName": {
+										"value": "",
+										"type": "String"
+									},
+									"PipelineName": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"RunId": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Status": {
+										"value": "\"FAILED\"",
+										"type": "String"
+									},
+									"StepName": {
+										"value": "\"NO_FILE\"",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_AzureSQL_LogPipelineStart",
+								"type": "LinkedServiceReference"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "ACT_GEN_EPIPE_ProcessFiles",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "PL_CHILD_EXT_BLOB_ADLS_RAW_FILE_PROCESS",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"FileList": {
+										"value": "@activity('ACT_GEN_META_ListFiles').output.childItems",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ACT_LOGGER_START",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[audit].[usp_Insert_Log]",
+					"storedProcedureParameters": {
+						"ActivityName": {
+							"value": "\"PIPELINE_STARTED\"",
+							"type": "String"
+						},
+						"ErrorMessage": {
+							"value": "",
+							"type": "String"
+						},
+						"FileName": {
+							"value": "",
+							"type": "String"
+						},
+						"PipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Status": {
+							"value": "\"STARTED\"",
+							"type": "String"
+						},
+						"StepName": {
+							"value": "\"START\"",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_LogPipelineStart",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "ACT_LOGGER",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "ACT_GEN_META_ListFiles",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[audit].[usp_Insert_Log]",
+					"storedProcedureParameters": {
+						"ActivityName": {
+							"value": "\"GET_METADATA\"",
+							"type": "String"
+						},
+						"ErrorMessage": {
+							"value": {
+								"value": "@concat(string(length(activity('ACT_GEN_META_ListFiles').output.childItems)),' Files Found')",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"FileName": {
+							"value": "",
+							"type": "String"
+						},
+						"PipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Status": {
+							"value": "\"INFO\"",
+							"type": "String"
+						},
+						"StepName": {
+							"value": "\"FILE_COUNT\"",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_LogPipelineStart",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "ACT_LOGGER_END",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "ACT_ITRC_IF_FunctionalPurpose_FileExistance",
+						"dependencyConditions": [
+							"Succeeded",
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[audit].[usp_Insert_Log]",
+					"storedProcedureParameters": {
+						"ActivityName": {
+							"value": "\"PIPELINE_END\"",
+							"type": "String"
+						},
+						"ErrorMessage": {
+							"value": "",
+							"type": "String"
+						},
+						"FileName": {
+							"value": "",
+							"type": "String"
+						},
+						"PipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Status": {
+							"value": "\"ENDED\"",
+							"type": "String"
+						},
+						"StepName": {
+							"value": "\"END\"",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_LogPipelineStart",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-03-23T14:56:21Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

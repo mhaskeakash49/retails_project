@@ -1,0 +1,9 @@
+{
+	"name": "ADF-SalesProject-Akash",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "ab89a038-9629-4eb8-84af-275e2c6e89c8",
+		"tenantId": "2d3cf61f-dd03-40b6-870f-5989e930337a"
+	}
+}

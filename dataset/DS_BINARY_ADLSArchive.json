@@ -1,0 +1,28 @@
+{
+	"name": "DS_BINARY_ADLSArchive",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SINK_Sales_DataEnginnering_ADLS",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ArchiveFileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().ArchiveFileName",
+					"type": "Expression"
+				},
+				"folderPath": "SourceName/Archive",
+				"fileSystem": "raw"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

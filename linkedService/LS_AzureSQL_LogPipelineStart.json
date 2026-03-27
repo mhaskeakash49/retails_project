@@ -1,0 +1,25 @@
+{
+	"name": "LS_AzureSQL_LogPipelineStart",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "asqlserver-salesproject-akash.database.windows.net",
+			"database": "ASQL_SalesProject_Akash",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "user",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS_AKV_Sales_DataEnginnering_Project",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "AzureSQLUserPassword",
+				"secretVersion": "6f18e15500e84752b9c23f1afe0b3120"
+			}
+		}
+	}
+}

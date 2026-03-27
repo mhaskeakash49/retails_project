@@ -1,0 +1,17 @@
+{
+	"name": "DS_SSERVER_OnPREM",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SSERVER_OnPREM",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "BRANCH"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
