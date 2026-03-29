@@ -1,0 +1,1919 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "ADF-SalesProject-Aakash"
+		},
+		"LS_ABLB_SRC_Sales_DataEnginnering_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_ABLB_SRC_Sales_DataEnginnering'"
+		},
+		"LS_SINK_Sales_DataEnginnering_ADLS_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'LS_SINK_Sales_DataEnginnering_ADLS'"
+		},
+		"LS_SSERVER_OnPREM_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_SSERVER_OnPREM'"
+		},
+		"LS_AKV_Sales_DataEnginnering_Project_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://KV-SalesProject-Akash.vault.azure.net/"
+		},
+		"LS_AzureSQL_LogPipelineStart_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "asqlserver-salesproject-akash.database.windows.net"
+		},
+		"LS_AzureSQL_LogPipelineStart_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "ASQL_SalesProject_Akash"
+		},
+		"LS_AzureSQL_LogPipelineStart_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "user"
+		},
+		"LS_SINK_Sales_DataEnginnering_ADLS_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://adlssalesprojectakash.dfs.core.windows.net/"
+		},
+		"LS_SSERVER_OnPREM_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "localhost\\SQLEXPRESS"
+		},
+		"LS_SSERVER_OnPREM_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "SALES"
+		},
+		"LS_SSERVER_OnPREM_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "DESKTOP-CHLIQ1G\\Admin"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_CHILD_EXT_BLOB_ADLS_RAW_FILE_PROCESS')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ACT_ITRC_FOR_FunctionalPurpose",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "ACT_LOGGER_3",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.FileList",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "ACT_MT_Copy_Blob_Adls",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "ACT_LOGGER_5",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "BinarySource",
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": false,
+												"deleteFilesAfterCompletion": false
+											},
+											"formatSettings": {
+												"type": "BinaryReadSettings"
+											}
+										},
+										"sink": {
+											"type": "BinarySink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings",
+												"copyBehavior": "FlattenHierarchy"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_ABLB_BINARY_COPY_Source",
+											"type": "DatasetReference",
+											"parameters": {
+												"SourceFileName": {
+													"value": "@item().name",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_BINARY_ADLSTarget",
+											"type": "DatasetReference",
+											"parameters": {
+												"TargetFileName": {
+													"value": "@item().name",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "ACT_MT_Copy_ADLS_Failure",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "ACT_LOGGER_7",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "BinarySource",
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": true
+											},
+											"formatSettings": {
+												"type": "BinaryReadSettings"
+											}
+										},
+										"sink": {
+											"type": "BinarySink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings",
+												"copyBehavior": "FlattenHierarchy"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_ABLB_BINARY_FILE",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_BINARY_ADLSFailure",
+											"type": "DatasetReference",
+											"parameters": {
+												"FailureFileName": {
+													"value": "@concat(\n    substring(item().name, 0, indexOf(item().name,'.')), \n    '_',\n    formatDateTime(utcNow(),'yyyyMMdd_HHmmss'), \n    substring(item().name, indexOf(item().name,'.'), sub(length(item().name), indexOf(item().name,'.'))) \n)",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "ACT_MT_Copy_ADLS_Archive",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "ACT_LOGGER_6",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "BinarySource",
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": false,
+												"deleteFilesAfterCompletion": false
+											},
+											"formatSettings": {
+												"type": "BinaryReadSettings"
+											}
+										},
+										"sink": {
+											"type": "BinarySink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings",
+												"copyBehavior": "FlattenHierarchy"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_ABLB_BINARY_COPY_Source",
+											"type": "DatasetReference",
+											"parameters": {
+												"SourceFileName": {
+													"value": "@item().name",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_BINARY_ADLSArchive",
+											"type": "DatasetReference",
+											"parameters": {
+												"ArchiveFileName": {
+													"value": "@concat(\n    substring(item().name, 0, indexOf(item().name,'.')), \n    '_',\n    formatDateTime(utcNow(),'yyyyMMdd_HHmmss'), \n    substring(item().name, indexOf(item().name,'.'), sub(length(item().name), indexOf(item().name,'.'))) \n)",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "ACT_MT_DELETE_FunctionalPurpose",
+									"type": "Delete",
+									"dependsOn": [
+										{
+											"activity": "ACT_LOGGER_8",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "DS_ABLB_BINARY_Source_Delete",
+											"type": "DatasetReference",
+											"parameters": {
+												"SourceFileDelete": {
+													"value": "@item().name",
+													"type": "Expression"
+												}
+											}
+										},
+										"enableLogging": false,
+										"storeSettings": {
+											"type": "AzureBlobStorageReadSettings",
+											"recursive": true,
+											"enablePartitionDiscovery": false
+										}
+									}
+								},
+								{
+									"name": "ACT_MT_DELETE_FunctionalPurpose_copy1",
+									"type": "Delete",
+									"dependsOn": [
+										{
+											"activity": "ACT_LOGGER_9",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "DS_ABLB_BINARY_Source_Delete",
+											"type": "DatasetReference",
+											"parameters": {
+												"SourceFileDelete": {
+													"value": "@item().name",
+													"type": "Expression"
+												}
+											}
+										},
+										"enableLogging": false,
+										"storeSettings": {
+											"type": "AzureBlobStorageReadSettings",
+											"recursive": true,
+											"enablePartitionDiscovery": false
+										}
+									}
+								},
+								{
+									"name": "ACT_LOGGER_3_copy1",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "ACT_MT_DELETE_FunctionalPurpose",
+											"dependencyConditions": [
+												"Succeeded",
+												"Failed"
+											]
+										},
+										{
+											"activity": "ACT_MT_DELETE_FunctionalPurpose_copy1",
+											"dependencyConditions": [
+												"Succeeded",
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[audit].[usp_Insert_Log]",
+										"storedProcedureParameters": {
+											"ActivityName": {
+												"value": "\"CHILD_PIPELINE_CALL\"",
+												"type": "String"
+											},
+											"ErrorMessage": {
+												"type": "String"
+											},
+											"FileName": {
+												"value": "",
+												"type": "String"
+											},
+											"PipelineName": {
+												"value": "\"PL_CHILD_EXT_BLOB_ADLS_RAW_FILE_PROCESS\"",
+												"type": "String"
+											},
+											"RunId": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Status": {
+												"value": "\"STARTED\"",
+												"type": "String"
+											},
+											"StepName": {
+												"value": "\"START_CHILD\"",
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AzureSQL_LogPipelineStart",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "ACT_LOGGER_7",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "ACT_MT_Copy_Blob_Adls",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[audit].[usp_Insert_Log]",
+										"storedProcedureParameters": {
+											"ActivityName": {
+												"value": "\"COPY\"",
+												"type": "String"
+											},
+											"ErrorMessage": {
+												"value": "\"Access denied\"",
+												"type": "String"
+											},
+											"FileName": {
+												"value": {
+													"value": "@item().name",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"PipelineName": {
+												"value": {
+													"value": "@pipeline().Pipeline",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"RunId": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Status": {
+												"value": "\"FAILED\"",
+												"type": "String"
+											},
+											"StepName": {
+												"value": "\"FAILED\"",
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AzureSQL_LogPipelineStart",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "ACT_LOGGER_6",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "ACT_MT_Copy_Blob_Adls",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[audit].[usp_Insert_Log]",
+										"storedProcedureParameters": {
+											"ActivityName": {
+												"value": "\"Copy File\"",
+												"type": "String"
+											},
+											"ErrorMessage": {
+												"value": {
+													"value": "@concat(item().name, 'copied to target')",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"FileName": {
+												"value": {
+													"value": "@item().name",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"PipelineName": {
+												"value": {
+													"value": "@pipeline().Pipeline",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"RunId": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Status": {
+												"value": "\"Success\"",
+												"type": "String"
+											},
+											"StepName": {
+												"value": "\"COPY\"",
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AzureSQL_LogPipelineStart",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "ACT_LOGGER_8",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "ACT_MT_Copy_ADLS_Archive",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[audit].[usp_Insert_Log]",
+										"storedProcedureParameters": {
+											"ActivityName": {
+												"value": "\"COPY\"",
+												"type": "String"
+											},
+											"ErrorMessage": {
+												"value": "\"SUCCESS\"",
+												"type": "String"
+											},
+											"FileName": {
+												"value": {
+													"value": "@item().name",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"PipelineName": {
+												"value": {
+													"value": "@pipeline().Pipeline",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"RunId": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Status": {
+												"value": "\"SUCCESS\"",
+												"type": "String"
+											},
+											"StepName": {
+												"value": "\"ARCHIVE\"",
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AzureSQL_LogPipelineStart",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "ACT_LOGGER_9",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "ACT_MT_Copy_ADLS_Failure",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[audit].[usp_Insert_Log]",
+										"storedProcedureParameters": {
+											"ActivityName": {
+												"value": "\"COPY\"",
+												"type": "String"
+											},
+											"ErrorMessage": {
+												"value": "\"Files copied to failure path\"",
+												"type": "String"
+											},
+											"FileName": {
+												"value": {
+													"value": "@item().name",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"PipelineName": {
+												"value": {
+													"value": "@pipeline().Pipeline",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"RunId": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Status": {
+												"value": "\"SUCCESS\"",
+												"type": "String"
+											},
+											"StepName": {
+												"value": "\"Copy failure",
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AzureSQL_LogPipelineStart",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "ACT_LOGGER_5",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[audit].[usp_Insert_Log]",
+										"storedProcedureParameters": {
+											"ActivityName": {
+												"value": "\"COPY",
+												"type": "String"
+											},
+											"ErrorMessage": {
+												"value": "\"Copy started\"",
+												"type": "String"
+											},
+											"FileName": {
+												"value": "",
+												"type": "String"
+											},
+											"PipelineName": {
+												"value": {
+													"value": "@pipeline().Pipeline",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"RunId": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Status": {
+												"value": "\"START",
+												"type": "String"
+											},
+											"StepName": {
+												"value": "\"COPY_START\"",
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AzureSQL_LogPipelineStart",
+										"type": "LinkedServiceReference"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "ACT_LOGGER_3",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[audit].[usp_Insert_Log]",
+							"storedProcedureParameters": {
+								"ActivityName": {
+									"value": "\"CHILD_PIPELINE_CALL\"",
+									"type": "String"
+								},
+								"ErrorMessage": {
+									"value": "\"Child pipeline started\"",
+									"type": "String"
+								},
+								"FileName": {
+									"value": "",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"RunId": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"Status": {
+									"value": "\"STARTED\"",
+									"type": "String"
+								},
+								"StepName": {
+									"value": "\"START_CHILD\"",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_AzureSQL_LogPipelineStart",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "ACT_LOGGER_4",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "ACT_ITRC_FOR_FunctionalPurpose",
+								"dependencyConditions": [
+									"Succeeded",
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[audit].[usp_Insert_Log]",
+							"storedProcedureParameters": {
+								"ActivityName": {
+									"value": "\"CHILD_PIPELINE_END\"",
+									"type": "String"
+								},
+								"ErrorMessage": {
+									"value": "\"Child pipeline ended\"",
+									"type": "String"
+								},
+								"FileName": {
+									"value": "",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"RunId": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"Status": {
+									"value": "\"ENDED\"",
+									"type": "String"
+								},
+								"StepName": {
+									"value": "\"END_CHILD\"",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_AzureSQL_LogPipelineStart",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"FileList": {
+						"type": "array"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-03-23T16:34:55Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_LogPipelineStart')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ABLB_BINARY_COPY_Source')]",
+				"[concat(variables('factoryId'), '/datasets/DS_BINARY_ADLSTarget')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ABLB_BINARY_FILE')]",
+				"[concat(variables('factoryId'), '/datasets/DS_BINARY_ADLSFailure')]",
+				"[concat(variables('factoryId'), '/datasets/DS_BINARY_ADLSArchive')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ABLB_BINARY_Source_Delete')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_EXT_BLOB_TGT_ADLS_RAW_Full_ADHOC')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ACT_GEN_META_ListFiles",
+						"type": "GetMetadata",
+						"dependsOn": [
+							{
+								"activity": "ACT_LOGGER_START",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "DS_ABLB_BINARY_FILE",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "BinaryReadSettings"
+							}
+						}
+					},
+					{
+						"name": "ACT_ITRC_IF_FunctionalPurpose_FileExistance",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "ACT_LOGGER",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@greater(length(activity('ACT_GEN_META_ListFiles').output.childItems),0)",
+								"type": "Expression"
+							},
+							"ifFalseActivities": [
+								{
+									"name": "ACT_GEN_EmailNotification",
+									"type": "WebActivity",
+									"dependsOn": [
+										{
+											"activity": "ACT_LOGGER_1",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"method": "POST",
+										"headers": {},
+										"url": "https://prod-24.centralindia.logic.azure.com:443/workflows/e8a63768703b4297a856c793d4f6ef64/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=BaTF6qJy0eJhztlj9hmV8MCyLTB19mIitdCwh1fs5pw",
+										"body": {
+											"value": "{\n  \"To\":\"mhaskeakash491@gmail.com;priyaintellibi@gmail.com\",\n  \"Subject\": \"Raw load status failure alert\",\n  \"Body\":\"Hi Team,\n  There is no files available at Azure Blob Storage(Source) to process ADLS(Raw Layer). Kindly verify and take necessary action...!\"\n}",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "ACT_BLOB_FILE_MISSING",
+									"type": "Fail",
+									"dependsOn": [
+										{
+											"activity": "ACT_GEN_EmailNotification",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"message": "\"Input files not exist at blob storage (Source)\"",
+										"errorCode": "ERR_FILE_NOT_FOUND"
+									}
+								},
+								{
+									"name": "ACT_LOGGER_1",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[audit].[usp_Insert_Log]",
+										"storedProcedureParameters": {
+											"ActivityName": {
+												"value": "\"FILE_CHECK\"",
+												"type": "String"
+											},
+											"ErrorMessage": {
+												"value": "\"NO_FILE_FOUND\"",
+												"type": "String"
+											},
+											"FileName": {
+												"value": "",
+												"type": "String"
+											},
+											"PipelineName": {
+												"value": {
+													"value": "@pipeline().Pipeline",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"RunId": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Status": {
+												"value": "\"FAILED\"",
+												"type": "String"
+											},
+											"StepName": {
+												"value": "\"NO_FILE\"",
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AzureSQL_LogPipelineStart",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "ACT_LOGGER_2",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "ACT_BLOB_FILE_MISSING",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[audit].[usp_Insert_Log]",
+										"storedProcedureParameters": {
+											"ActivityName": {
+												"value": "\"FILE_CHECK\"",
+												"type": "String"
+											},
+											"ErrorMessage": {
+												"value": "\"Error alert sent on mail\"",
+												"type": "String"
+											},
+											"FileName": {
+												"value": "",
+												"type": "String"
+											},
+											"PipelineName": {
+												"value": {
+													"value": "@pipeline().Pipeline",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"RunId": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Status": {
+												"value": "\"FAILED\"",
+												"type": "String"
+											},
+											"StepName": {
+												"value": "\"NO_FILE\"",
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AzureSQL_LogPipelineStart",
+										"type": "LinkedServiceReference"
+									}
+								}
+							],
+							"ifTrueActivities": [
+								{
+									"name": "ACT_GEN_EPIPE_ProcessFiles",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_CHILD_EXT_BLOB_ADLS_RAW_FILE_PROCESS",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"FileList": {
+												"value": "@activity('ACT_GEN_META_ListFiles').output.childItems",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "ACT_LOGGER_START",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[audit].[usp_Insert_Log]",
+							"storedProcedureParameters": {
+								"ActivityName": {
+									"value": "\"PIPELINE_STARTED\"",
+									"type": "String"
+								},
+								"ErrorMessage": {
+									"value": "",
+									"type": "String"
+								},
+								"FileName": {
+									"value": "",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"RunId": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"Status": {
+									"value": "\"STARTED\"",
+									"type": "String"
+								},
+								"StepName": {
+									"value": "\"START\"",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_AzureSQL_LogPipelineStart",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "ACT_LOGGER",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "ACT_GEN_META_ListFiles",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[audit].[usp_Insert_Log]",
+							"storedProcedureParameters": {
+								"ActivityName": {
+									"value": "\"GET_METADATA\"",
+									"type": "String"
+								},
+								"ErrorMessage": {
+									"value": {
+										"value": "@concat(string(length(activity('ACT_GEN_META_ListFiles').output.childItems)),' Files Found')",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"FileName": {
+									"value": "",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"RunId": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"Status": {
+									"value": "\"INFO\"",
+									"type": "String"
+								},
+								"StepName": {
+									"value": "\"FILE_COUNT\"",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_AzureSQL_LogPipelineStart",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "ACT_LOGGER_END",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "ACT_ITRC_IF_FunctionalPurpose_FileExistance",
+								"dependencyConditions": [
+									"Succeeded",
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[audit].[usp_Insert_Log]",
+							"storedProcedureParameters": {
+								"ActivityName": {
+									"value": "\"PIPELINE_END\"",
+									"type": "String"
+								},
+								"ErrorMessage": {
+									"value": "",
+									"type": "String"
+								},
+								"FileName": {
+									"value": "",
+									"type": "String"
+								},
+								"PipelineName": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"RunId": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"Status": {
+									"value": "\"ENDED\"",
+									"type": "String"
+								},
+								"StepName": {
+									"value": "\"END\"",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_AzureSQL_LogPipelineStart",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-03-23T14:56:21Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_ABLB_BINARY_FILE')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_LogPipelineStart')]",
+				"[concat(variables('factoryId'), '/pipelines/PL_CHILD_EXT_BLOB_ADLS_RAW_FILE_PROCESS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_EXT_ONPREMSQLSERVER')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ACT_GEN_LKP_FunctionalPurpose",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "DS_ASQL_Lookup",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ACT_ITRC_FOR_FunctionalPurpose",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "ACT_GEN_LKP_FunctionalPurpose",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('ACT_GEN_LKP_FunctionalPurpose').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "ACT_ITRC_IF_Full_OR_Incremental_Decision",
+									"type": "IfCondition",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@equals(item().LoadType, 'Full')",
+											"type": "Expression"
+										},
+										"ifFalseActivities": [
+											{
+												"name": "ACT_MT_Copy_Incremental_LoadData",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "SqlServerSource",
+														"sqlReaderQuery": {
+															"value": "@concat(\n  'SELECT * FROM dbo.', item().TableName,\n  ' WHERE ', item().WatermarkColumn,\n  ' > ''', item().LastWatermarkValue, ''''\n)",
+															"type": "Expression"
+														},
+														"queryTimeout": "02:00:00",
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "ParquetSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings",
+															"copyBehavior": "FlattenHierarchy"
+														},
+														"formatSettings": {
+															"type": "ParquetWriteSettings"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "DS_SSERVER_OnPREM",
+														"type": "DatasetReference",
+														"parameters": {}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "DS_ADLS_Parquet",
+														"type": "DatasetReference",
+														"parameters": {
+															"FileName": {
+																"value": "@item().TableName",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										],
+										"ifTrueActivities": [
+											{
+												"name": "ACT_MT_Copy_FULL_LoadData",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.00:10:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "SqlServerSource",
+														"sqlReaderQuery": {
+															"value": "@concat('select * from dbo.',item().TableName)",
+															"type": "Expression"
+														},
+														"queryTimeout": "02:00:00",
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "ParquetSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings",
+															"copyBehavior": "FlattenHierarchy"
+														},
+														"formatSettings": {
+															"type": "ParquetWriteSettings"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "DS_SSERVER_OnPREM",
+														"type": "DatasetReference",
+														"parameters": {}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "DS_ADLS_Parquet",
+														"type": "DatasetReference",
+														"parameters": {
+															"FileName": {
+																"value": "@item().TableName",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-03-25T17:56:16Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_ASQL_Lookup')]",
+				"[concat(variables('factoryId'), '/datasets/DS_SSERVER_OnPREM')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Parquet')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ABLB_BINARY_COPY_Source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ABLB_SRC_Sales_DataEnginnering",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"SourceFileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().SourceFileName",
+							"type": "Expression"
+						},
+						"container": "source"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ABLB_SRC_Sales_DataEnginnering')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ABLB_BINARY_FILE')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ABLB_SRC_Sales_DataEnginnering",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ABLB_SRC_Sales_DataEnginnering')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ABLB_BINARY_Source_Delete')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ABLB_SRC_Sales_DataEnginnering",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"SourceFileDelete": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().SourceFileDelete",
+							"type": "Expression"
+						},
+						"container": "source"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ABLB_SRC_Sales_DataEnginnering')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Parquet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SINK_Sales_DataEnginnering_ADLS",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"folderPath": "SourceName/Target",
+						"fileSystem": "raw"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SINK_Sales_DataEnginnering_ADLS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ASQL_Lookup')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_LogPipelineStart",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "TableName",
+						"type": "varchar"
+					},
+					{
+						"name": "SchemaName",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ADF_Table_Load_Config"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_LogPipelineStart')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_BINARY_ADLSArchive')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SINK_Sales_DataEnginnering_ADLS",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"ArchiveFileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().ArchiveFileName",
+							"type": "Expression"
+						},
+						"folderPath": "SourceName/Archive",
+						"fileSystem": "raw"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SINK_Sales_DataEnginnering_ADLS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_BINARY_ADLSFailure')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SINK_Sales_DataEnginnering_ADLS",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FailureFileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().FailureFileName",
+							"type": "Expression"
+						},
+						"folderPath": "SourceName/Failure",
+						"fileSystem": "raw"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SINK_Sales_DataEnginnering_ADLS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_BINARY_ADLSTarget')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SINK_Sales_DataEnginnering_ADLS",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TargetFileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().TargetFileName",
+							"type": "Expression"
+						},
+						"folderPath": "SourceName/Target",
+						"fileSystem": "raw"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SINK_Sales_DataEnginnering_ADLS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_SSERVER_OnPREM')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SSERVER_OnPREM",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "BRANCH"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SSERVER_OnPREM')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_ABLB_SRC_Sales_DataEnginnering')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('LS_ABLB_SRC_Sales_DataEnginnering_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_AKV_Sales_DataEnginnering_Project')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('LS_AKV_Sales_DataEnginnering_Project_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_AzureSQL_LogPipelineStart')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('LS_AzureSQL_LogPipelineStart_properties_typeProperties_server')]",
+					"database": "[parameters('LS_AzureSQL_LogPipelineStart_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_AzureSQL_LogPipelineStart_properties_typeProperties_userName')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LS_AKV_Sales_DataEnginnering_Project",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "AzureSQLUserPassword",
+						"secretVersion": "6f18e15500e84752b9c23f1afe0b3120"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AKV_Sales_DataEnginnering_Project')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_SINK_Sales_DataEnginnering_ADLS')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('LS_SINK_Sales_DataEnginnering_ADLS_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('LS_SINK_Sales_DataEnginnering_ADLS_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_SSERVER_OnPREM')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"server": "[parameters('LS_SSERVER_OnPREM_properties_typeProperties_server')]",
+					"database": "[parameters('LS_SSERVER_OnPREM_properties_typeProperties_database')]",
+					"encrypt": "optional",
+					"trustServerCertificate": false,
+					"authenticationType": "Windows",
+					"userName": "[parameters('LS_SSERVER_OnPREM_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_SSERVER_OnPREM_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "IR-SelfHosted",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/IR-SelfHosted')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IR-SelfHosted')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		}
+	]
+}

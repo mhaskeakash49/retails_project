@@ -1,0 +1,42 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "ADF-SalesProject-Aakash"
+		},
+		"LS_ABLB_SRC_Sales_DataEnginnering_connectionString": {
+			"value": ""
+		},
+		"LS_SINK_Sales_DataEnginnering_ADLS_accountKey": {
+			"value": ""
+		},
+		"LS_SSERVER_OnPREM_password": {
+			"value": ""
+		},
+		"LS_AKV_Sales_DataEnginnering_Project_properties_typeProperties_baseUrl": {
+			"value": "https://KV-SalesProject-Akash.vault.azure.net/"
+		},
+		"LS_AzureSQL_LogPipelineStart_properties_typeProperties_server": {
+			"value": "asqlserver-salesproject-akash.database.windows.net"
+		},
+		"LS_AzureSQL_LogPipelineStart_properties_typeProperties_database": {
+			"value": "ASQL_SalesProject_Akash"
+		},
+		"LS_AzureSQL_LogPipelineStart_properties_typeProperties_userName": {
+			"value": "user"
+		},
+		"LS_SINK_Sales_DataEnginnering_ADLS_properties_typeProperties_url": {
+			"value": "https://adlssalesprojectakash.dfs.core.windows.net/"
+		},
+		"LS_SSERVER_OnPREM_properties_typeProperties_server": {
+			"value": "localhost\\SQLEXPRESS"
+		},
+		"LS_SSERVER_OnPREM_properties_typeProperties_database": {
+			"value": "SALES"
+		},
+		"LS_SSERVER_OnPREM_properties_typeProperties_userName": {
+			"value": "DESKTOP-CHLIQ1G\\Admin"
+		}
+	}
+}
