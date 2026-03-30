@@ -19,7 +19,7 @@
 					"value": "@dataset().TargetFileName",
 					"type": "Expression"
 				},
-				"folderPath": "SourceName/Target",
+				"folderPath": "target",
 				"fileSystem": "raw"
 			}
 		}
