@@ -5,14 +5,7 @@
 			{
 				"name": "ACT_GEN_META_ListFiles",
 				"type": "GetMetadata",
-				"dependsOn": [
-					{
-						"activity": "ACT_LOGGER_START",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.00:10:00",
 					"retry": 0,
@@ -44,7 +37,7 @@
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "ACT_LOGGER",
+						"activity": "ACT_GEN_META_ListFiles",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -60,14 +53,7 @@
 						{
 							"name": "ACT_GEN_EmailNotification",
 							"type": "WebActivity",
-							"dependsOn": [
-								{
-									"activity": "ACT_LOGGER_1",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
+							"dependsOn": [],
 							"policy": {
 								"timeout": "0.00:10:00",
 								"retry": 0,
@@ -101,125 +87,6 @@
 								"message": "\"Input files not exist at blob storage (Source)\"",
 								"errorCode": "ERR_FILE_NOT_FOUND"
 							}
-						},
-						{
-							"name": "ACT_LOGGER_1",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.00:10:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[audit].[usp_Insert_Log]",
-								"storedProcedureParameters": {
-									"ActivityName": {
-										"value": "\"FILE_CHECK\"",
-										"type": "String"
-									},
-									"ErrorMessage": {
-										"value": "\"NO_FILE_FOUND\"",
-										"type": "String"
-									},
-									"FileName": {
-										"value": "",
-										"type": "String"
-									},
-									"PipelineName": {
-										"value": {
-											"value": "@pipeline().Pipeline",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"RunId": {
-										"value": {
-											"value": "@pipeline().RunId",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"Status": {
-										"value": "\"FAILED\"",
-										"type": "String"
-									},
-									"StepName": {
-										"value": "\"NO_FILE\"",
-										"type": "String"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS_AzureSQL_LogPipelineStart",
-								"type": "LinkedServiceReference"
-							}
-						},
-						{
-							"name": "ACT_LOGGER_2",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [
-								{
-									"activity": "ACT_BLOB_FILE_MISSING",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.00:10:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[audit].[usp_Insert_Log]",
-								"storedProcedureParameters": {
-									"ActivityName": {
-										"value": "\"FILE_CHECK\"",
-										"type": "String"
-									},
-									"ErrorMessage": {
-										"value": "\"Error alert sent on mail\"",
-										"type": "String"
-									},
-									"FileName": {
-										"value": "",
-										"type": "String"
-									},
-									"PipelineName": {
-										"value": {
-											"value": "@pipeline().Pipeline",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"RunId": {
-										"value": {
-											"value": "@pipeline().RunId",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"Status": {
-										"value": "\"FAILED\"",
-										"type": "String"
-									},
-									"StepName": {
-										"value": "\"NO_FILE\"",
-										"type": "String"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS_AzureSQL_LogPipelineStart",
-								"type": "LinkedServiceReference"
-							}
 						}
 					],
 					"ifTrueActivities": [
@@ -246,192 +113,6 @@
 							}
 						}
 					]
-				}
-			},
-			{
-				"name": "ACT_LOGGER_START",
-				"type": "SqlServerStoredProcedure",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.00:10:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"storedProcedureName": "[audit].[usp_Insert_Log]",
-					"storedProcedureParameters": {
-						"ActivityName": {
-							"value": "\"PIPELINE_STARTED\"",
-							"type": "String"
-						},
-						"ErrorMessage": {
-							"value": "",
-							"type": "String"
-						},
-						"FileName": {
-							"value": "",
-							"type": "String"
-						},
-						"PipelineName": {
-							"value": {
-								"value": "@pipeline().Pipeline",
-								"type": "Expression"
-							},
-							"type": "String"
-						},
-						"RunId": {
-							"value": {
-								"value": "@pipeline().RunId",
-								"type": "Expression"
-							},
-							"type": "String"
-						},
-						"Status": {
-							"value": "\"STARTED\"",
-							"type": "String"
-						},
-						"StepName": {
-							"value": "\"START\"",
-							"type": "String"
-						}
-					}
-				},
-				"linkedServiceName": {
-					"referenceName": "LS_AzureSQL_LogPipelineStart",
-					"type": "LinkedServiceReference"
-				}
-			},
-			{
-				"name": "ACT_LOGGER",
-				"type": "SqlServerStoredProcedure",
-				"dependsOn": [
-					{
-						"activity": "ACT_GEN_META_ListFiles",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.00:10:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"storedProcedureName": "[audit].[usp_Insert_Log]",
-					"storedProcedureParameters": {
-						"ActivityName": {
-							"value": "\"GET_METADATA\"",
-							"type": "String"
-						},
-						"ErrorMessage": {
-							"value": {
-								"value": "@concat(string(length(activity('ACT_GEN_META_ListFiles').output.childItems)),' Files Found')",
-								"type": "Expression"
-							},
-							"type": "String"
-						},
-						"FileName": {
-							"value": "",
-							"type": "String"
-						},
-						"PipelineName": {
-							"value": {
-								"value": "@pipeline().Pipeline",
-								"type": "Expression"
-							},
-							"type": "String"
-						},
-						"RunId": {
-							"value": {
-								"value": "@pipeline().RunId",
-								"type": "Expression"
-							},
-							"type": "String"
-						},
-						"Status": {
-							"value": "\"INFO\"",
-							"type": "String"
-						},
-						"StepName": {
-							"value": "\"FILE_COUNT\"",
-							"type": "String"
-						}
-					}
-				},
-				"linkedServiceName": {
-					"referenceName": "LS_AzureSQL_LogPipelineStart",
-					"type": "LinkedServiceReference"
-				}
-			},
-			{
-				"name": "ACT_LOGGER_END",
-				"type": "SqlServerStoredProcedure",
-				"dependsOn": [
-					{
-						"activity": "ACT_ITRC_IF_FunctionalPurpose_FileExistance",
-						"dependencyConditions": [
-							"Succeeded",
-							"Failed"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.00:10:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"storedProcedureName": "[audit].[usp_Insert_Log]",
-					"storedProcedureParameters": {
-						"ActivityName": {
-							"value": "\"PIPELINE_END\"",
-							"type": "String"
-						},
-						"ErrorMessage": {
-							"value": "",
-							"type": "String"
-						},
-						"FileName": {
-							"value": "",
-							"type": "String"
-						},
-						"PipelineName": {
-							"value": {
-								"value": "@pipeline().Pipeline",
-								"type": "Expression"
-							},
-							"type": "String"
-						},
-						"RunId": {
-							"value": {
-								"value": "@pipeline().RunId",
-								"type": "Expression"
-							},
-							"type": "String"
-						},
-						"Status": {
-							"value": "\"ENDED\"",
-							"type": "String"
-						},
-						"StepName": {
-							"value": "\"END\"",
-							"type": "String"
-						}
-					}
-				},
-				"linkedServiceName": {
-					"referenceName": "LS_AzureSQL_LogPipelineStart",
-					"type": "LinkedServiceReference"
 				}
 			}
 		],

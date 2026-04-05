@@ -5,14 +5,7 @@
 			{
 				"name": "ACT_ITRC_FOR_FunctionalPurpose",
 				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "ACT_LOGGER_3",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
@@ -24,14 +17,7 @@
 						{
 							"name": "ACT_MT_Copy_Blob_Adls",
 							"type": "Copy",
-							"dependsOn": [
-								{
-									"activity": "ACT_LOGGER_5",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
+							"dependsOn": [],
 							"policy": {
 								"timeout": "0.00:10:00",
 								"retry": 0,
@@ -91,9 +77,9 @@
 							"type": "Copy",
 							"dependsOn": [
 								{
-									"activity": "ACT_LOGGER_7",
+									"activity": "ACT_MT_Copy_Blob_Adls",
 									"dependencyConditions": [
-										"Succeeded"
+										"Failed"
 									]
 								}
 							],
@@ -149,7 +135,7 @@
 							"type": "Copy",
 							"dependsOn": [
 								{
-									"activity": "ACT_LOGGER_6",
+									"activity": "ACT_MT_Copy_Blob_Adls",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -214,7 +200,7 @@
 							"type": "Delete",
 							"dependsOn": [
 								{
-									"activity": "ACT_LOGGER_8",
+									"activity": "ACT_MT_Copy_ADLS_Archive",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -252,7 +238,7 @@
 							"type": "Delete",
 							"dependsOn": [
 								{
-									"activity": "ACT_LOGGER_9",
+									"activity": "ACT_MT_Copy_ADLS_Failure",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -284,454 +270,8 @@
 									"enablePartitionDiscovery": false
 								}
 							}
-						},
-						{
-							"name": "ACT_LOGGER_3_copy1",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [
-								{
-									"activity": "ACT_MT_DELETE_FunctionalPurpose",
-									"dependencyConditions": [
-										"Succeeded",
-										"Failed"
-									]
-								},
-								{
-									"activity": "ACT_MT_DELETE_FunctionalPurpose_copy1",
-									"dependencyConditions": [
-										"Succeeded",
-										"Failed"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.00:10:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[audit].[usp_Insert_Log]",
-								"storedProcedureParameters": {
-									"ActivityName": {
-										"value": "\"CHILD_PIPELINE_CALL\"",
-										"type": "String"
-									},
-									"ErrorMessage": {
-										"type": "String"
-									},
-									"FileName": {
-										"value": "",
-										"type": "String"
-									},
-									"PipelineName": {
-										"value": "\"PL_CHILD_EXT_BLOB_ADLS_RAW_FILE_PROCESS\"",
-										"type": "String"
-									},
-									"RunId": {
-										"value": {
-											"value": "@pipeline().RunId",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"Status": {
-										"value": "\"STARTED\"",
-										"type": "String"
-									},
-									"StepName": {
-										"value": "\"START_CHILD\"",
-										"type": "String"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS_AzureSQL_LogPipelineStart",
-								"type": "LinkedServiceReference"
-							}
-						},
-						{
-							"name": "ACT_LOGGER_7",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [
-								{
-									"activity": "ACT_MT_Copy_Blob_Adls",
-									"dependencyConditions": [
-										"Failed"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.00:10:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[audit].[usp_Insert_Log]",
-								"storedProcedureParameters": {
-									"ActivityName": {
-										"value": "\"COPY\"",
-										"type": "String"
-									},
-									"ErrorMessage": {
-										"value": "\"Access denied\"",
-										"type": "String"
-									},
-									"FileName": {
-										"value": {
-											"value": "@item().name",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"PipelineName": {
-										"value": {
-											"value": "@pipeline().Pipeline",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"RunId": {
-										"value": {
-											"value": "@pipeline().RunId",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"Status": {
-										"value": "\"FAILED\"",
-										"type": "String"
-									},
-									"StepName": {
-										"value": "\"FAILED\"",
-										"type": "String"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS_AzureSQL_LogPipelineStart",
-								"type": "LinkedServiceReference"
-							}
-						},
-						{
-							"name": "ACT_LOGGER_6",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [
-								{
-									"activity": "ACT_MT_Copy_Blob_Adls",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.00:10:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[audit].[usp_Insert_Log]",
-								"storedProcedureParameters": {
-									"ActivityName": {
-										"value": "\"Copy File\"",
-										"type": "String"
-									},
-									"ErrorMessage": {
-										"value": {
-											"value": "@concat(item().name, 'copied to target')",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"FileName": {
-										"value": {
-											"value": "@item().name",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"PipelineName": {
-										"value": {
-											"value": "@pipeline().Pipeline",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"RunId": {
-										"value": {
-											"value": "@pipeline().RunId",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"Status": {
-										"value": "\"Success\"",
-										"type": "String"
-									},
-									"StepName": {
-										"value": "\"COPY\"",
-										"type": "String"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS_AzureSQL_LogPipelineStart",
-								"type": "LinkedServiceReference"
-							}
-						},
-						{
-							"name": "ACT_LOGGER_8",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [
-								{
-									"activity": "ACT_MT_Copy_ADLS_Archive",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.00:10:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[audit].[usp_Insert_Log]",
-								"storedProcedureParameters": {
-									"ActivityName": {
-										"value": "\"COPY\"",
-										"type": "String"
-									},
-									"ErrorMessage": {
-										"value": "\"SUCCESS\"",
-										"type": "String"
-									},
-									"FileName": {
-										"value": {
-											"value": "@item().name",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"PipelineName": {
-										"value": {
-											"value": "@pipeline().Pipeline",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"RunId": {
-										"value": {
-											"value": "@pipeline().RunId",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"Status": {
-										"value": "\"SUCCESS\"",
-										"type": "String"
-									},
-									"StepName": {
-										"value": "\"ARCHIVE\"",
-										"type": "String"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS_AzureSQL_LogPipelineStart",
-								"type": "LinkedServiceReference"
-							}
-						},
-						{
-							"name": "ACT_LOGGER_9",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [
-								{
-									"activity": "ACT_MT_Copy_ADLS_Failure",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.00:10:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[audit].[usp_Insert_Log]",
-								"storedProcedureParameters": {
-									"ActivityName": {
-										"value": "\"COPY\"",
-										"type": "String"
-									},
-									"ErrorMessage": {
-										"value": "\"Files copied to failure path\"",
-										"type": "String"
-									},
-									"FileName": {
-										"value": {
-											"value": "@item().name",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"PipelineName": {
-										"value": {
-											"value": "@pipeline().Pipeline",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"RunId": {
-										"value": {
-											"value": "@pipeline().RunId",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"Status": {
-										"value": "\"SUCCESS\"",
-										"type": "String"
-									},
-									"StepName": {
-										"value": "\"Copy failure",
-										"type": "String"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS_AzureSQL_LogPipelineStart",
-								"type": "LinkedServiceReference"
-							}
-						},
-						{
-							"name": "ACT_LOGGER_5",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.00:10:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[audit].[usp_Insert_Log]",
-								"storedProcedureParameters": {
-									"ActivityName": {
-										"value": "\"COPY",
-										"type": "String"
-									},
-									"ErrorMessage": {
-										"value": "\"Copy started\"",
-										"type": "String"
-									},
-									"FileName": {
-										"value": "",
-										"type": "String"
-									},
-									"PipelineName": {
-										"value": {
-											"value": "@pipeline().Pipeline",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"RunId": {
-										"value": {
-											"value": "@pipeline().RunId",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"Status": {
-										"value": "\"START",
-										"type": "String"
-									},
-									"StepName": {
-										"value": "\"COPY_START\"",
-										"type": "String"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS_AzureSQL_LogPipelineStart",
-								"type": "LinkedServiceReference"
-							}
 						}
 					]
-				}
-			},
-			{
-				"name": "ACT_LOGGER_3",
-				"type": "SqlServerStoredProcedure",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.00:10:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"storedProcedureName": "[audit].[usp_Insert_Log]",
-					"storedProcedureParameters": {
-						"ActivityName": {
-							"value": "\"CHILD_PIPELINE_CALL\"",
-							"type": "String"
-						},
-						"ErrorMessage": {
-							"value": "\"Child pipeline started\"",
-							"type": "String"
-						},
-						"FileName": {
-							"value": "",
-							"type": "String"
-						},
-						"PipelineName": {
-							"value": {
-								"value": "@pipeline().Pipeline",
-								"type": "Expression"
-							},
-							"type": "String"
-						},
-						"RunId": {
-							"value": {
-								"value": "@pipeline().RunId",
-								"type": "Expression"
-							},
-							"type": "String"
-						},
-						"Status": {
-							"value": "\"STARTED\"",
-							"type": "String"
-						},
-						"StepName": {
-							"value": "\"START_CHILD\"",
-							"type": "String"
-						}
-					}
-				},
-				"linkedServiceName": {
-					"referenceName": "LS_AzureSQL_LogPipelineStart",
-					"type": "LinkedServiceReference"
 				}
 			},
 			{
